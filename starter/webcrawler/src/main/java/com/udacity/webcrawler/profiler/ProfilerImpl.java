@@ -7,6 +7,10 @@ import java.nio.file.Path;
 import java.time.Clock;
 import java.time.ZonedDateTime;
 import java.util.Objects;
+import java.util.Arrays;
+import java.nio.file.StandardOpenOption;
+import java.lang.reflect.Proxy;
+import java.nio.file.Files;
 
 import static java.time.format.DateTimeFormatter.RFC_1123_DATE_TIME;
 
@@ -29,17 +33,26 @@ final class ProfilerImpl implements Profiler {
   public <T> T wrap(Class<T> klass, T delegate) {
     Objects.requireNonNull(klass);
 
-    // TODO: Use a dynamic proxy (java.lang.reflect.Proxy) to "wrap" the delegate in a
-    //       ProfilingMethodInterceptor and return a dynamic proxy from this method.
-    //       See https://docs.oracle.com/javase/10/docs/api/java/lang/reflect/Proxy.html.
-
-    return delegate;
+    //Profiler.wrap() should throw an IllegalArgumentException if the wrapped interface does not contain a @Profiled method.
+    if (!Arrays.stream(klass.getDeclaredMethods()).anyMatch(m -> m.getAnnotation(Profiled.class) != null)) {
+      throw new IllegalArgumentException();
+    }
+    T proxy = (T) Proxy.newProxyInstance(
+            klass.getClassLoader(),
+            new Class<?>[] {klass},
+            new ProfilingMethodInterceptor(this.clock, this.state, delegate)
+    );
+    return proxy;
   }
 
   @Override
-  public void writeData(Path path) {
-    // TODO: Write the ProfilingState data to the given file path. If a file already exists at that
-    //       path, the new data should be appended to the existing file.
+  public void writeData(Path path) throws IOException {
+    try (Writer writer = Files.newBufferedWriter(path,
+            StandardOpenOption.CREATE,
+            StandardOpenOption.WRITE,
+            StandardOpenOption.APPEND)) {
+      writeData(writer);
+    }
   }
 
   @Override

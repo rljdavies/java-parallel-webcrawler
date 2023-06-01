@@ -3,6 +3,7 @@ package com.udacity.webcrawler;
 import com.udacity.webcrawler.json.CrawlResult;
 import com.udacity.webcrawler.parser.PageParser;
 import com.udacity.webcrawler.parser.PageParserFactory;
+import com.udacity.webcrawler.profiler.Profiled;
 
 import javax.inject.Inject;
 import java.time.Clock;
@@ -44,6 +45,7 @@ final class SequentialWebCrawler implements WebCrawler {
   }
 
   @Override
+  @Profiled
   public CrawlResult crawl(List<String> startingUrls) {
     Instant deadline = clock.instant().plus(timeout);
     Map<String, Integer> counts = new HashMap<>();

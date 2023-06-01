@@ -1,5 +1,11 @@
 package com.udacity.webcrawler.json;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.StandardOpenOption;
 import java.io.Writer;
 import java.nio.file.Path;
 import java.util.Objects;
@@ -19,6 +25,8 @@ public final class CrawlResultWriter {
 
   /**
    * Formats the {@link CrawlResult} as JSON and writes it to the given {@link Path}.
+   * Opens a BufferedWriter using 'try-with-resources' to both prevent leaks and to ensure the
+   * BufferedWriter is closed (java.io.Closeable) after the crawl result is written.
    *
    * <p>If a file already exists at the path, the existing file should not be deleted; new data
    * should be appended to it.
@@ -26,9 +34,16 @@ public final class CrawlResultWriter {
    * @param path the file path where the crawl result data should be written.
    */
   public void write(Path path) {
-    // This is here to get rid of the unused variable warning.
-    Objects.requireNonNull(path);
-    // TODO: Fill in this method.
+    try (Writer writer = Files.newBufferedWriter(
+            path,
+            StandardCharsets.UTF_8,
+            StandardOpenOption.CREATE,
+            StandardOpenOption.WRITE,
+            StandardOpenOption.APPEND)) {
+        write(writer);
+    } catch (IOException e) {
+        throw new RuntimeException(e);
+    }
   }
 
   /**
@@ -37,8 +52,12 @@ public final class CrawlResultWriter {
    * @param writer the destination where the crawl result data should be written.
    */
   public void write(Writer writer) {
-    // This is here to get rid of the unused variable warning.
-    Objects.requireNonNull(writer);
-    // TODO: Fill in this method.
+    ObjectMapper objectMapper = new ObjectMapper();
+    objectMapper.disable(JsonGenerator.Feature.AUTO_CLOSE_TARGET);
+    try {
+        objectMapper.writeValue(writer, result);
+    } catch (IOException e) {
+        throw new RuntimeException(e);
+    }
   }
 }
