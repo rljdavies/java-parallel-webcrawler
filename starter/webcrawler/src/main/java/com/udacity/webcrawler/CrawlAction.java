@@ -7,6 +7,8 @@ import com.udacity.webcrawler.parser.PageParserFactory;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.RecursiveAction;
 import java.util.regex.Pattern;
 
@@ -20,11 +22,11 @@ public final class CrawlAction extends RecursiveAction {
     private final Instant deadline;
     private final int maxDepth;
     private final PageParserFactory parserFactory;
-    private final Map<String, Integer> counts;
-    private final Set<String> visitedUrls;
+    private final ConcurrentHashMap<String, Integer> counts;
+    private final ConcurrentSkipListSet<String> visitedUrls;
     private final List<Pattern> ignoredUrls;
 
-    private CrawlAction(String url, Instant deadline, int maxDepth, PageParserFactory parserFactory, Clock clock, Map<String, Integer> counts, Set<String> visitedUrls, List<Pattern> ignoredUrls) {
+    private CrawlAction(String url, Instant deadline, int maxDepth, PageParserFactory parserFactory, Clock clock, ConcurrentHashMap<String, Integer> counts, ConcurrentSkipListSet<String> visitedUrls, List<Pattern> ignoredUrls) {
         this.url = url;
         this.deadline = deadline;
         this.maxDepth = maxDepth;
@@ -52,12 +54,9 @@ public final class CrawlAction extends RecursiveAction {
         visitedUrls.add(url);
         PageParser.Result result = parserFactory.get(url).parse();
 
+        //adjusted for atomicity
         for (Map.Entry<String, Integer> e : result.getWordCounts().entrySet()) {
-            if (counts.containsKey(e.getKey())) {
-                counts.put(e.getKey(), e.getValue() + counts.get(e.getKey()));
-            } else {
-                counts.put(e.getKey(), e.getValue());
-            }
+            counts.compute(e.getKey(), (k, v) -> v == null ? e.getValue() : e.getValue() + counts.get(e.getKey()));
         }
 
         //however instead of a recursive call to self we make a list of subtasks then invokeAll
@@ -83,8 +82,8 @@ public final class CrawlAction extends RecursiveAction {
         private Instant deadline;
         private int maxDepth;
         private PageParserFactory parserFactory;
-        private Map<String, Integer> counts;
-        private Set<String> visitedUrls;
+        private ConcurrentHashMap<String, Integer> counts;
+        private ConcurrentSkipListSet<String> visitedUrls;
         private List<Pattern> ignoredUrls;
 
         /**
@@ -130,7 +129,7 @@ public final class CrawlAction extends RecursiveAction {
         /**
          * Sets the counts.
          */
-        public CrawlAction.Builder setCounts(Map<String, Integer> counts) {
+        public CrawlAction.Builder setCounts(ConcurrentHashMap<String, Integer> counts) {
             this.counts = counts;
             return this;
         }
@@ -138,7 +137,7 @@ public final class CrawlAction extends RecursiveAction {
         /**
          * Sets the visitedUrls.
          */
-        public CrawlAction.Builder setVisitedUrls(Set<String> visitedUrls) {
+        public CrawlAction.Builder setVisitedUrls(ConcurrentSkipListSet<String> visitedUrls) {
             this.visitedUrls = visitedUrls;
             return this;
         }

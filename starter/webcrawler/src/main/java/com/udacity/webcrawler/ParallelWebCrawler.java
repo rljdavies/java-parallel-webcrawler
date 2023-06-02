@@ -53,10 +53,10 @@ final class ParallelWebCrawler implements WebCrawler {
   @Profiled
   public CrawlResult crawl(List<String> startingUrls) {
     Instant deadline = clock.instant().plus(timeout);
-    Map<String, Integer> counts = new ConcurrentHashMap<>();
+    ConcurrentHashMap<String, Integer> counts = new ConcurrentHashMap<>();
     //for visitedUrls considered Collections.synchronizedSet(new HashSet<>()) but
     //ConcurrentSkipListSet is more performant and data consistency concerns are low
-    Set<String> visitedUrls = new ConcurrentSkipListSet<>();
+    ConcurrentSkipListSet<String> visitedUrls = new ConcurrentSkipListSet<>();
 
     CrawlAction.Builder crawlAction = new CrawlAction.Builder().setDeadline(deadline)
             .setMaxDepth(maxDepth)
