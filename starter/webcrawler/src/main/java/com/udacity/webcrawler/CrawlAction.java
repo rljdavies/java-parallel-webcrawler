@@ -1,6 +1,4 @@
 package com.udacity.webcrawler;
-
-import com.udacity.webcrawler.json.CrawlResult;
 import com.udacity.webcrawler.parser.PageParser;
 import com.udacity.webcrawler.parser.PageParserFactory;
 
