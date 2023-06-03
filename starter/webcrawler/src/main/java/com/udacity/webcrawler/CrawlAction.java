@@ -46,10 +46,11 @@ public final class CrawlAction extends RecursiveAction {
                 return;
             }
         }
-        if (visitedUrls.contains(url)) {
+
+        //adds if not present, will only continue and parse if necessary
+        if (!visitedUrls.add(url)) {
             return;
         }
-        visitedUrls.add(url);
         PageParser.Result result = parserFactory.get(url).parse();
 
         //adjusted for atomicity

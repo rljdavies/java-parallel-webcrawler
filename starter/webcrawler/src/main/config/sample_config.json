@@ -7,6 +7,5 @@
   "maxDepth": 5,
   "timeoutSeconds": 10,
   "popularWordCount": 7,
-  "profileOutputPath": "profileData.txt",
-  "resultPath": "result.json"
+  "profileOutputPath": "profileData.txt"
 }
