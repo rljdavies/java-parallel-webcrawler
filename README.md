@@ -1,3 +1,5 @@
+This is an academic project as part of a Udacity DevOps with Java Nanodegree.
+
 # Project: Parallel Web Crawler
 
 ![UdaciSearch Logo](UdaciSearch.png)
